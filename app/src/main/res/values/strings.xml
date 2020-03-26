@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">HTTPServer</string>
+    <string name="btn1_text">Start HTTP Server</string>
+    <string name="btn2_text">Stop HTTP Server</string>
+
+</resources>
