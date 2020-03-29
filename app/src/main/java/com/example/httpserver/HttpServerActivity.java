@@ -88,10 +88,11 @@ public class HttpServerActivity extends Activity implements OnClickListener{
 				}
 		);
 
-		MyTimerTask myTask = new MyTimerTask();
+		//take picture periodically
+		/*MyTimerTask myTask = new MyTimerTask();
 		Timer myTimer = new Timer();
 
-		//myTimer.schedule(myTask, 5000,3000);
+		myTimer.schedule(myTask, 5000,3000);*/
 	}
 
 	@Override
@@ -151,17 +152,6 @@ public class HttpServerActivity extends Activity implements OnClickListener{
 		}
 	};
 
-	/** Check if this device has a camera */
-	private boolean checkCameraHardware(Context context) {
-		if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)){
-			// this device has a camera
-			return true;
-		} else {
-			// no camera on this device
-			return false;
-		}
-	}
-
 	/** A safe way to get an instance of the Camera object. */
 	public Camera getCameraInstance(){
 		Camera c = null;
@@ -204,11 +194,6 @@ public class HttpServerActivity extends Activity implements OnClickListener{
 
 		}
 	};
-
-	/** Create a file Uri for saving an image or video */
-	private static Uri getOutputMediaFileUri(int type){
-		return Uri.fromFile(getOutputMediaFile(type));
-	}
 
 	/** Create a File for saving an image or video */
 	private static File getOutputMediaFile(int type){

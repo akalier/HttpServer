@@ -84,7 +84,6 @@ public class ClientThread extends Thread {
 
             String tmp = in.readLine();
             while(tmp != null && !tmp.isEmpty()) {
-                //Log.d("SERVER GET", tmp);
                 if (tmp.startsWith("GET")) {
                     String result = tmp.split(" ")[1];
                     //Log.d("SERVER", "Requested file: " + result);
@@ -96,7 +95,6 @@ public class ClientThread extends Thread {
 
                     File sdPath = Environment.getExternalStorageDirectory();
 
-                    Log.d("SERVER", "result: " + result);
                     if (result.equals("/camera/snapshot")) {
                         mCamera.takePicture(null, null, mPicture);
 
@@ -109,7 +107,6 @@ public class ClientThread extends Thread {
                                 //file exists
                                 //Log.d("SERVER", "file exists!");
                                 String mimeType = getMimeType(result);
-                                //Log.d("SERVER", "the file mimeType is: " + mimeType);
 
                                 FileInputStream fileInputStream = new FileInputStream(f);
 
@@ -219,8 +216,6 @@ public class ClientThread extends Thread {
 
             mCamera.stopPreview();
 
-
-
         }
 
     }
@@ -256,10 +251,6 @@ public class ClientThread extends Thread {
 
     public static String getNotFoundResponseShort() {
         return  "HTTP/1.0 404 NOT FOUND\nContent-Type: text/html";
-    }
-
-    public Socket getSocket() {
-        return this.s;
     }
 
     private String getCurrentTime() {
