@@ -45,7 +45,7 @@ public class HttpServerActivity extends Activity implements OnClickListener{
 	public static final String MSG_KEY = "Message";
 	public static final String B_KEY = "Bytes";
 
-	public static final String TAG = "CAM";
+	public static final String TAG = "Http Server Activity";
 
 	private Camera mCamera;
 	private CameraPreview mPreview;

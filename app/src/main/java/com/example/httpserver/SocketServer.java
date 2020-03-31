@@ -17,6 +17,8 @@ public class SocketServer extends Thread {
 	private Semaphore semaphore;
 	private Camera mCamera;
 
+	public static final String TAG = "Socket Server";
+
 	Handler mHandler;
 
 	int maxThreads;
@@ -33,7 +35,7 @@ public class SocketServer extends Thread {
 		try {
 			serverSocket.close();
 		} catch (IOException e) {
-			Log.d("SERVER", "Error, probably interrupted in accept(), see log");
+			Log.d(TAG, "Error, probably interrupted in accept(), see log");
 			e.printStackTrace();
 		}
 		bRunning = false;
@@ -41,12 +43,12 @@ public class SocketServer extends Thread {
 	
 	public void run() {
         try {
-        	Log.d("SERVER", "Creating Socket");
+        	Log.d(TAG, "Creating Socket");
             serverSocket = new ServerSocket(port);
             bRunning = true;
 
             while (bRunning) {
-            	Log.d("SERVER", "Socket Waiting for connection");
+            	Log.d(TAG, "Socket Waiting for connection");
                 Socket s = serverSocket.accept();
                 if (semaphore.tryAcquire()) {
 					Log.d("SEMAPHORE", "acquired, " + this.semaphore.availablePermits());
@@ -60,9 +62,9 @@ public class SocketServer extends Thread {
         } 
         catch (IOException e) {
             if (serverSocket != null && serverSocket.isClosed())
-            	Log.d("SERVER", "Normal exit");
+            	Log.d(TAG, "Normal exit");
             else {
-            	Log.d("SERVER", "Error");
+            	Log.d(TAG, "Error");
             	e.printStackTrace();
             }
         }

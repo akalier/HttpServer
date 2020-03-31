@@ -32,7 +32,7 @@ public class ClientThread extends Thread {
     private Socket s;
     public static final String MSG_KEY = "Message";
     public static final String B_KEY = "Bytes";
-    public static final String TAG = "CAM";
+    public static final String TAG = "Client Thread";
     private Handler mHandler;
     Semaphore semaphore;
     Camera mCamera;
@@ -223,7 +223,7 @@ public class ClientThread extends Thread {
             semaphore.release();
             Log.d("SEMAPHORE", "released, " + this.semaphore.availablePermits());
             s.close();
-            Log.d("SERVER", "Socket Closed");
+            Log.d(TAG, "Socket Closed");
         } catch (IOException e) {
             msg = mHandler.obtainMessage();
             bundle.putString(MSG_KEY, getCurrentTime() + ": ERROR: " + e.toString());
@@ -231,9 +231,9 @@ public class ClientThread extends Thread {
             msg.setData(bundle);
             mHandler.sendMessage(msg);
             if (s != null && s.isClosed())
-                Log.d("SERVER", "Normal exit");
+                Log.d(TAG, "Normal exit");
             else {
-                Log.d("SERVER", "Error");
+                Log.d(TAG, "Error");
                 e.printStackTrace();
             }
         }
