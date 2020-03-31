@@ -63,7 +63,6 @@ public class ClientThread extends Thread {
                     //Log.d("SERVER", "Requested file: " + result);
                     msg = mHandler.obtainMessage();
                     bundle.putString(MSG_KEY, getCurrentTime() + ": " + tmp);
-                    bundle.putLong(B_KEY, 0);
                     msg.setData(bundle);
                     mHandler.sendMessage(msg);
 
@@ -73,7 +72,6 @@ public class ClientThread extends Thread {
 
                         msg = mHandler.obtainMessage();
                         bundle.putString(MSG_KEY, getCurrentTime() + ": " + getStreamResponseShort());
-                        bundle.putLong(B_KEY, 0);
                         msg.setData(bundle);
                         mHandler.sendMessage(msg);
 
@@ -117,7 +115,6 @@ public class ClientThread extends Thread {
 
                         msg = mHandler.obtainMessage();
                         bundle.putString(MSG_KEY, getCurrentTime() + ": " + getCGIResponseShort());
-                        bundle.putLong(B_KEY, 0);
                         msg.setData(bundle);
                         mHandler.sendMessage(msg);
                     }
@@ -160,7 +157,6 @@ public class ClientThread extends Thread {
                                     out.write(getUnknownTypeResponse());
                                     msg = mHandler.obtainMessage();
                                     bundle.putString(MSG_KEY, getCurrentTime() + ": " + getUnknownTypeResponseShort());
-                                    bundle.putLong(B_KEY, 0);
                                     msg.setData(bundle);
                                     mHandler.sendMessage(msg);
                                 } else {
@@ -188,7 +184,6 @@ public class ClientThread extends Thread {
                                     out.write(getNotFoundResponse());
                                     msg = mHandler.obtainMessage();
                                     bundle.putString(MSG_KEY, getCurrentTime() + ": " + getNotFoundResponseShort());
-                                    bundle.putLong(B_KEY, 0);
                                     msg.setData(bundle);
                                     mHandler.sendMessage(msg);
                                 } else {
@@ -202,7 +197,6 @@ public class ClientThread extends Thread {
                                     out.write("</ul></body></html>");
                                     msg = mHandler.obtainMessage();
                                     bundle.putString(MSG_KEY, getCurrentTime() + ": " + "HTTP/1.0 200 OK\n Content-Type: text/html");
-                                    bundle.putLong(B_KEY, 0);
                                     msg.setData(bundle);
                                     mHandler.sendMessage(msg);
                                 }
@@ -225,7 +219,6 @@ public class ClientThread extends Thread {
         } catch (IOException e) {
             msg = mHandler.obtainMessage();
             bundle.putString(MSG_KEY, getCurrentTime() + ": ERROR: " + e.toString());
-            bundle.putLong(B_KEY, 0);
             msg.setData(bundle);
             mHandler.sendMessage(msg);
             if (s != null && s.isClosed())

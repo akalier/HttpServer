@@ -115,7 +115,7 @@ public class HttpServerActivity extends Activity implements OnClickListener{
 		public void handleMessage(Message msg) {
 			Bundle bundle = msg.getData();
 			String string = bundle.getString(MSG_KEY);
-			Long bytesReceived = bundle.getLong(B_KEY);
+			Long bytesReceived = bundle.getLong(B_KEY, 0);
 			logView.setText(logView.getText() + string + "\n");
 			bytes = bytes + bytesReceived;
 			bytesView.setText("Total transfered: " + bytes + " B");
