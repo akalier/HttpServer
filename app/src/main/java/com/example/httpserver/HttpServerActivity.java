@@ -46,14 +46,13 @@ public class HttpServerActivity extends Activity implements OnClickListener{
 	public static final String B_KEY = "Bytes";
 
 	public static final String TAG = "Http Server Activity";
+	public static final String DIRECTORY_NAME = "MyCameraApp";
 
-	private Camera mCamera;
-	private CameraPreview mPreview;
+	public static final Camera mCamera = getCameraInstance();
+	public static CameraPreview mPreview;
 
 	public static final int MEDIA_TYPE_IMAGE = 1;
-	public static final int MEDIA_TYPE_VIDEO = 2;
 
-	private boolean safeToTakePicture = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -70,9 +69,7 @@ public class HttpServerActivity extends Activity implements OnClickListener{
 		btn1.setOnClickListener(this);
 		btn2.setOnClickListener(this);
 
-		mCamera = getCameraInstance();
-
-		mPreview = new CameraPreview(this, mCamera);
+		mPreview = new CameraPreview(this);
 		FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
 		preview.addView(mPreview);
 
@@ -88,25 +85,6 @@ public class HttpServerActivity extends Activity implements OnClickListener{
 				}
 		);
 
-		//take picture periodically
-		/*MyTimerTask myTask = new MyTimerTask();
-		Timer myTimer = new Timer();
-
-		myTimer.schedule(myTask, 5000,3000);*/
-	}
-
-	@Override
-	protected void onPause() {
-		super.onPause();
-		//releaseMediaRecorder();       // if you are using MediaRecorder, release it first
-		releaseCamera();              // release the camera immediately on pause event
-	}
-
-	private void releaseCamera(){
-		if (mCamera != null){
-			mCamera.release();        // release the camera for other applications
-			mCamera = null;
-		}
 	}
 
 	@Override
@@ -153,11 +131,10 @@ public class HttpServerActivity extends Activity implements OnClickListener{
 	};
 
 	/** A safe way to get an instance of the Camera object. */
-	public Camera getCameraInstance(){
+	public static Camera getCameraInstance(){
 		Camera c = null;
 		try {
 			c = Camera.open(); // attempt to get a Camera instance
-			this.safeToTakePicture = true;
 		}
 		catch (Exception e){
 			// Camera is not available (in use or does not exist)
@@ -173,7 +150,6 @@ public class HttpServerActivity extends Activity implements OnClickListener{
 
 			File pictureFile = getOutputMediaFile(MEDIA_TYPE_IMAGE);
 			if (pictureFile == null){
-				safeToTakePicture = true;
 				Log.d(TAG, "Error creating media file, check storage permissions");
 				return;
 			}
@@ -189,7 +165,6 @@ public class HttpServerActivity extends Activity implements OnClickListener{
 			}
 
 			//finished saving picture
-			safeToTakePicture = true;
 			mCamera.startPreview();
 
 		}
@@ -201,26 +176,24 @@ public class HttpServerActivity extends Activity implements OnClickListener{
 		// using Environment.getExternalStorageState() before doing this.
 
 		File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
-				Environment.DIRECTORY_PICTURES), "MyCameraApp");
+				Environment.DIRECTORY_PICTURES), DIRECTORY_NAME);
 		// This location works best if you want the created images to be shared
 		// between applications and persist after your app has been uninstalled.
 
 		// Create the storage directory if it does not exist
 		if (! mediaStorageDir.exists()){
 			if (! mediaStorageDir.mkdirs()){
-				Log.d("MyCameraApp", "failed to create directory");
+				Log.d(TAG, "failed to create directory");
 				return null;
 			}
 		}
 
 		// Create a media file name
+		String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
 		File mediaFile;
-		if (type == MEDIA_TYPE_IMAGE){
+		if (type == MEDIA_TYPE_IMAGE) {
 			mediaFile = new File(mediaStorageDir.getPath() + File.separator +
-					"IMG_1" + ".jpg");
-		} else if(type == MEDIA_TYPE_VIDEO) {
-			mediaFile = new File(mediaStorageDir.getPath() + File.separator +
-					"VID_1" + ".mp4");
+					"IMG_" + timeStamp + ".jpg");
 		} else {
 			return null;
 		}
@@ -228,17 +201,5 @@ public class HttpServerActivity extends Activity implements OnClickListener{
 		return mediaFile;
 	}
 
-	class MyTimerTask extends TimerTask {
-		public void run() {
-			try {
-				if (safeToTakePicture) {
-					mCamera.takePicture(null, null, mPicture);
-					safeToTakePicture = false;
-				}
-			} catch (Exception e) {
-				Log.d(TAG, "Timertask: " + e.getMessage());
-			}
-		}
-	}
 
 }

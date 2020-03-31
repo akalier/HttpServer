@@ -1,7 +1,6 @@
 package com.example.httpserver;
 
 import android.hardware.Camera;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -13,8 +12,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -22,23 +19,24 @@ import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Semaphore;
+
+import static com.example.httpserver.HttpServerActivity.mPreview;
 
 public class ClientThread extends Thread {
 
     private Socket s;
-    public static final String MSG_KEY = "Message";
-    public static final String B_KEY = "Bytes";
-    public static final String TAG = "Client Thread";
+    private static final String MSG_KEY = "Message";
+    private static final String B_KEY = "Bytes";
+    private static final String TAG = "Client Thread";
     private Handler mHandler;
     Semaphore semaphore;
-    Camera mCamera;
 
-    public static final int MEDIA_TYPE_IMAGE = 1;
-    public static final int MEDIA_TYPE_VIDEO = 2;
+    private Camera mCamera;
+
 
     public ClientThread(Socket s, Handler mHandler, Semaphore semaphore, Camera mCamera) {
         this.s = s;
@@ -57,32 +55,6 @@ public class ClientThread extends Thread {
             final BufferedWriter out = new BufferedWriter(new OutputStreamWriter(o));
             BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
 
-            Camera.PictureCallback mPicture = new Camera.PictureCallback() {
-
-                @Override
-                public void onPictureTaken(byte[] data, Camera camera) {
-
-                    //OutputStream o = null;
-                    try {
-                        //o = s.getOutputStream();
-                        //Log.d("SERVER", "" + o);
-
-                        //BufferedWriter out = new BufferedWriter(new OutputStreamWriter(o));
-
-                        String okResponse = getOKResponse("image/jpeg");
-                        out.write(okResponse);
-                        out.flush();
-
-                        o.write(data);
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                    //mCamera.startPreview();
-
-                }
-            };
 
             String tmp = in.readLine();
             while(tmp != null && !tmp.isEmpty()) {
@@ -97,32 +69,57 @@ public class ClientThread extends Thread {
 
                     File sdPath = Environment.getExternalStorageDirectory();
 
-                    if (result.equals("/camera/snapshot")) {
-                        mCamera.takePicture(null, null, mPicture);
+                    if (result.contains("/stream")) {
 
-                    } else if(result.contains("/cgi-bin")) {
+                        msg = mHandler.obtainMessage();
+                        bundle.putString(MSG_KEY, getCurrentTime() + ": " + getStreamResponseShort());
+                        bundle.putLong(B_KEY, 0);
+                        msg.setData(bundle);
+                        mHandler.sendMessage(msg);
+
+                        out.write(getStreamResponse());
+                        out.flush();
+
+                        while(result.contains("/stream")) {
+                            byte[] data = mPreview.previewData;
+                            out.write("--OSMZ_boundary\n" +
+                                    "Content-Type: image/jpeg" + "\n" +
+                                    "Content-length: " + data.length + "\n\n");
+                            out.flush();
+                            o.write(data);
+                        }
+
+                    }
+                    else if(result.contains("/cgi-bin")) {
                         String command = result.substring(9);
                         String[] commands = command.split("%20");
+
                         if (commands.length > 0) {
-                            out.write("HTTP/1.0 200 OK\n" +
-                                    "Content-Type: text/plain\n"
-                                    + "\n");
-                            out.flush();
-                            ArrayList<String> arguments = new ArrayList<String>();
-                            arguments.addAll(Arrays.asList(commands));
+                            List<String> arguments = new ArrayList<String>();
+                            arguments.add(commands[0]);
+
+                            for (int i = 1; i < commands.length; i++) {
+                                arguments.add(commands[1]);
+                            }
 
                             ProcessBuilder processBuilder = new ProcessBuilder(arguments);
                             Process process = processBuilder.start();
                             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()), 1);
 
-                            int part = 0;
-                            while ((part = reader.read()) != -1) {
-                                o.write(part);
+                            int c = 0;
+                            while ((c = reader.read()) != -1) {
+                                o.write(c);
                             }
                             o.flush();
                             process.destroy();
 
                         }
+
+                        msg = mHandler.obtainMessage();
+                        bundle.putString(MSG_KEY, getCurrentTime() + ": " + getCGIResponseShort());
+                        bundle.putLong(B_KEY, 0);
+                        msg.setData(bundle);
+                        mHandler.sendMessage(msg);
                     }
 
                     else {
@@ -187,7 +184,7 @@ public class ClientThread extends Thread {
                                 final File folder = new File(sdPath + result);
                                 if (!folder.exists()) {
                                     //file does not exist
-                                    //Log.d("SERVER", "file does not exist.");
+
                                     out.write(getNotFoundResponse());
                                     msg = mHandler.obtainMessage();
                                     bundle.putString(MSG_KEY, getCurrentTime() + ": " + getNotFoundResponseShort());
@@ -195,11 +192,12 @@ public class ClientThread extends Thread {
                                     msg.setData(bundle);
                                     mHandler.sendMessage(msg);
                                 } else {
+                                    //write contents of directory
                                     out.write("HTTP/1.0 200 OK\n Content-Type: text/html\n\n<html><body><ul>");
                                     out.flush();
                                     for (final File fileEntry : folder.listFiles()) {
-                                        //Log.d("FILE", fileEntry.getName());
-                                        out.write("<li><a href='" + fileEntry.getName() + "'>" + fileEntry.getName() + "</a></li>");
+
+                                        out.write("<li><a href='" + folder.getName() + "/" + fileEntry.getName() + "'>" + fileEntry.getName() + "</a></li>");
                                     }
                                     out.write("</ul></body></html>");
                                     msg = mHandler.obtainMessage();
@@ -239,9 +237,6 @@ public class ClientThread extends Thread {
         }
         finally {
             s = null;
-            //bRunning = false;
-
-            mCamera.stopPreview();
 
         }
 
@@ -260,12 +255,22 @@ public class ClientThread extends Thread {
         return "HTTP/1.0 200 OK\n Content-Type: " + contentType + "\n\n";
     }
 
+    public static String getStreamResponse() {
+
+        return ("HTTP/1.1 200 Ok\n" +
+                "Content-Type: multipart/x-mixed-replace; boundary=\"--OSMZ_boundary\"" +"\n\n");
+    }
+
     public static String getUnknownTypeResponse() {
         return "HTTP/1.0 404 NOT FOUND\nContent-Type: text/html\n\n<html><body><h3>Unknown type!</h3></body></html>";
     }
 
     public static String getNotFoundResponse() {
         return  "HTTP/1.0 404 NOT FOUND\nContent-Type: text/html\n\n<html><body><h3>File not found!</h3></body></html>";
+    }
+
+    public static String getCGIResponse() {
+        return "HTTP/1.0 200 OK\nContent-Type: text/plain\n\n";
     }
 
     public static String getOKResponseShort(String contentType) {
@@ -280,48 +285,20 @@ public class ClientThread extends Thread {
         return  "HTTP/1.0 404 NOT FOUND\nContent-Type: text/html";
     }
 
+    public static String getStreamResponseShort() {
+
+        return ("HTTP/1.1 200 Ok\nContent-Type: multipart/x-mixed-replace; boundary=\"--OSMZ_boundary\"");
+    }
+
+    public static String getCGIResponseShort() {
+        return "HTTP/1.0 200 OK\nContent-Type: text/plain";
+    }
+
     private String getCurrentTime() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss MM/dd/yyyy", Locale.US);
         return dateFormat.format(new Date());
     }
 
-    /** Create a file Uri for saving an image or video */
-    private static Uri getOutputMediaFileUri(int type){
-        return Uri.fromFile(getOutputMediaFile(type));
-    }
-
-    /** Create a File for saving an image or video */
-    private static File getOutputMediaFile(int type){
-        // To be safe, you should check that the SDCard is mounted
-        // using Environment.getExternalStorageState() before doing this.
-
-        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES), "MyCameraApp");
-        // This location works best if you want the created images to be shared
-        // between applications and persist after your app has been uninstalled.
-
-        // Create the storage directory if it does not exist
-        if (! mediaStorageDir.exists()){
-            if (! mediaStorageDir.mkdirs()){
-                Log.d("MyCameraApp", "failed to create directory");
-                return null;
-            }
-        }
-
-        // Create a media file name
-        File mediaFile;
-        if (type == MEDIA_TYPE_IMAGE){
-            mediaFile = new File(mediaStorageDir.getPath() + File.separator +
-                    "IMG_1" + ".jpg");
-        } else if(type == MEDIA_TYPE_VIDEO) {
-            mediaFile = new File(mediaStorageDir.getPath() + File.separator +
-                    "VID_1" + ".mp4");
-        } else {
-            return null;
-        }
-
-        return mediaFile;
-    }
 
 }
 
