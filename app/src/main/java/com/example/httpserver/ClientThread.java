@@ -33,12 +33,12 @@ public class ClientThread extends Thread {
     private static final String B_KEY = "Bytes";
     private static final String TAG = "Client Thread";
     private Handler mHandler;
-    Semaphore semaphore;
+    private Semaphore semaphore;
 
     private Camera mCamera;
 
 
-    public ClientThread(Socket s, Handler mHandler, Semaphore semaphore, Camera mCamera) {
+    ClientThread(Socket s, Handler mHandler, Semaphore semaphore, Camera mCamera) {
         this.s = s;
         this.mHandler = mHandler;
         this.semaphore = semaphore;
@@ -235,7 +235,7 @@ public class ClientThread extends Thread {
 
     }
 
-    public static String getMimeType(String url) {
+    private static String getMimeType(String url) {
         String type = null;
         String extension = MimeTypeMap.getFileExtensionFromUrl(url);
         if (extension != null) {
@@ -244,46 +244,46 @@ public class ClientThread extends Thread {
         return type;
     }
 
-    public static String getOKResponse(String contentType) {
+    private static String getOKResponse(String contentType) {
         return "HTTP/1.0 200 OK\n Content-Type: " + contentType + "\n\n";
     }
 
-    public static String getStreamResponse() {
+    private static String getStreamResponse() {
 
         return ("HTTP/1.1 200 Ok\n" +
                 "Content-Type: multipart/x-mixed-replace; boundary=\"--OSMZ_boundary\"" +"\n\n");
     }
 
-    public static String getUnknownTypeResponse() {
+    private static String getUnknownTypeResponse() {
         return "HTTP/1.0 404 NOT FOUND\nContent-Type: text/html\n\n<html><body><h3>Unknown type!</h3></body></html>";
     }
 
-    public static String getNotFoundResponse() {
+    private static String getNotFoundResponse() {
         return  "HTTP/1.0 404 NOT FOUND\nContent-Type: text/html\n\n<html><body><h3>File not found!</h3></body></html>";
     }
 
-    public static String getCGIResponse() {
+    private static String getCGIResponse() {
         return "HTTP/1.0 200 OK\nContent-Type: text/plain\n\n";
     }
 
-    public static String getOKResponseShort(String contentType) {
+    private static String getOKResponseShort(String contentType) {
         return "HTTP/1.0 200 OK\n Content-Type: " + contentType;
     }
 
-    public static String getUnknownTypeResponseShort() {
+    private static String getUnknownTypeResponseShort() {
         return "HTTP/1.0 404 NOT FOUND\nContent-Type: text/html";
     }
 
-    public static String getNotFoundResponseShort() {
+    private static String getNotFoundResponseShort() {
         return  "HTTP/1.0 404 NOT FOUND\nContent-Type: text/html";
     }
 
-    public static String getStreamResponseShort() {
+    private static String getStreamResponseShort() {
 
         return ("HTTP/1.1 200 Ok\nContent-Type: multipart/x-mixed-replace; boundary=\"--OSMZ_boundary\"");
     }
 
-    public static String getCGIResponseShort() {
+    private static String getCGIResponseShort() {
         return "HTTP/1.0 200 OK\nContent-Type: text/plain";
     }
 

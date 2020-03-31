@@ -11,19 +11,19 @@ import android.util.Log;
 
 public class SocketServer extends Thread {
 	
-	ServerSocket serverSocket;
-	public final int port = 12345;
+	private ServerSocket serverSocket;
+	private final int port = 12345;
 	private boolean bRunning;
 	private Semaphore semaphore;
 	private Camera mCamera;
 
-	public static final String TAG = "Socket Server";
+	private static final String TAG = "Socket Server";
 
-	Handler mHandler;
+	private Handler mHandler;
 
-	int maxThreads;
+	private int maxThreads;
 
-	public SocketServer(Handler mHandler, int maxThreads, Camera mCamera) {
+	SocketServer(Handler mHandler, int maxThreads, Camera mCamera) {
 	    this.mHandler = mHandler;
 	    this.maxThreads = maxThreads;
 	    this.mCamera = mCamera;
@@ -31,7 +31,7 @@ public class SocketServer extends Thread {
 		Log.d("SEMAPHORE", "starting with " + this.semaphore.availablePermits());
     }
 	
-	public void close() {
+	void close() {
 		try {
 			serverSocket.close();
 		} catch (IOException e) {

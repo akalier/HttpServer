@@ -1,18 +1,12 @@
 package com.example.httpserver;
 
-import android.content.Context;
-import android.content.pm.PackageManager;
 import android.hardware.Camera;
-import android.net.Uri;
 import android.os.Bundle;
 import android.app.Activity;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
-import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -27,11 +21,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE;
 
 public class HttpServerActivity extends Activity implements OnClickListener{
 
@@ -50,9 +39,6 @@ public class HttpServerActivity extends Activity implements OnClickListener{
 
 	public static final Camera mCamera = getCameraInstance();
 	public static CameraPreview mPreview;
-
-	public static final int MEDIA_TYPE_IMAGE = 1;
-
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -148,7 +134,7 @@ public class HttpServerActivity extends Activity implements OnClickListener{
 		@Override
 		public void onPictureTaken(byte[] data, Camera camera) {
 
-			File pictureFile = getOutputMediaFile(MEDIA_TYPE_IMAGE);
+			File pictureFile = getOutputMediaFile();
 			if (pictureFile == null){
 				Log.d(TAG, "Error creating media file, check storage permissions");
 				return;
@@ -171,7 +157,7 @@ public class HttpServerActivity extends Activity implements OnClickListener{
 	};
 
 	/** Create a File for saving an image or video */
-	private static File getOutputMediaFile(int type){
+	private static File getOutputMediaFile(){
 		// To be safe, you should check that the SDCard is mounted
 		// using Environment.getExternalStorageState() before doing this.
 
@@ -191,12 +177,8 @@ public class HttpServerActivity extends Activity implements OnClickListener{
 		// Create a media file name
 		String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
 		File mediaFile;
-		if (type == MEDIA_TYPE_IMAGE) {
-			mediaFile = new File(mediaStorageDir.getPath() + File.separator +
+		mediaFile = new File(mediaStorageDir.getPath() + File.separator +
 					"IMG_" + timeStamp + ".jpg");
-		} else {
-			return null;
-		}
 
 		return mediaFile;
 	}
